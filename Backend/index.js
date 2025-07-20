@@ -1,0 +1,26 @@
+const express= require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const expenseRoutes = require('./routes/expense');
+
+dotenv.config();
+const app = express();
+
+app.use(express.json());
+//routes
+app.use("/expenses", expenseRoutes);
+
+//Middleware
+app.use(cors());
+
+//DB connection
+mongoose.connect(process.env.DB_CONNECTION).then(() => {
+    console.log('Connected to MongoDB');
+}).catch(err => {
+    console.error('MongoDB connection error:', err);
+}); 
+
+app.listen(process.env.PORT, () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
+}); 
