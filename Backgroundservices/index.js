@@ -14,7 +14,7 @@ mongoose.connect(process.env.DB_CONNECTION).then(() => {
 
 const schedule = () => {
     cron.schedule('* * * * * *', () => {
-  console.log('running a task every second');
+  
  });
 }
 
