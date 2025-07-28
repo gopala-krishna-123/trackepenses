@@ -1,214 +1,244 @@
+import React, { useState, useEffect } from "react";
 import { FaTrash, FaEdit, FaWindowClose } from "react-icons/fa";
-import React, { useState } from "react";
 import { PieChart } from "@mui/x-charts/PieChart";
+import { publicRequest } from "./requestmethods";
 
 function App() {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
 
-  const handleAddExpense = () => {
-    setShowAddExpense(!showAddExpense);
+  const [label, setLabel] = useState("");
+  const [amount, setAmount] = useState("0");
+  const [date, setDate] = useState("");
+
+  const [expenses, setExpenses] = useState([]);
+
+  const [updatedId, setUpdatedId] = useState("");
+  const [updatedLabel, setUpdatedLabel] = useState("");
+  const [updatedAmount, setUpdatedAmount] = useState("0");
+  const [updatedDate, setUpdatedDate] = useState("");
+
+  const [searchTerm, setSearchTerm] = useState(""); // 🔍 Search term
+
+  const handleAddExpense = () => setShowAddExpense(!showAddExpense);
+  const handleShowReport = () => setShowReport(!showReport);
+  const handleShowEdit = () => setShowEdit(!showEdit);
+
+  const fetchExpenses = async () => {
+    try {
+      const response = await publicRequest.get("/expenses");
+      setExpenses(response.data);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+    }
   };
 
-  const handleShowReport = () => {
-    setShowReport(!showReport);
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const handleExpense = async () => {
+    try {
+      await publicRequest.post("/expenses", {
+        label,
+        date,
+        value: amount,
+      });
+      fetchExpenses();
+      setShowAddExpense(false);
+    } catch (error) {
+      console.error("Error adding expense:", error);
+    }
   };
 
-  const handleShowEdit = () => {
-    console.log("Edit button clicked");
-    setShowEdit(!showEdit);
+  const handleDeleteExpense = async (id) => {
+    try {
+      await publicRequest.delete(`/expenses/${id}`);
+      fetchExpenses();
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+    }
+  };
+
+  const handleUpdateExpense = async () => {
+    try {
+      await publicRequest.put(`/expenses/${updatedId}`, {
+        label: updatedLabel,
+        date: updatedDate,
+        value: updatedAmount,
+      });
+      fetchExpenses();
+      setShowEdit(false);
+    } catch (error) {
+      console.error("Error updating expense:", error);
+    }
   };
 
   return (
-    <div>
-      <div className="flex flex-col justify-center items-center mt-[3%] w-[80%] mr-[5%] ml-[5%]">
-        <h1 className="text-2xl font-medium text-[#555]">Expense tracker</h1>
-        <div className="relative flex items-center justify-between mt-5 w-[100%]">
-          <div className="relative flex justify-between w-[300px]">
-            <button
-              className="bg-[#af8978] p-[10px] border-none outline-none cursor-pointer text-[#fff] text-medium"
-              onClick={handleAddExpense}
-            >
-              Add Expense{" "}
-            </button>
-            <button
-              className="bg-blue-300 p-[10px] border-none outline-none cursor-pointer text-[#fff] text-medium"
-              onClick={handleShowReport}
-            >
-              Expense Report
-            </button>
-          </div>
-          {showAddExpense && (
-            <div className="absolute z-[999] flex flex-col p-[10px] top-[20px] left-0 h-[500px] w-[500px] bg-white shadow-xl">
-              <FaWindowClose
-                className="flex justify-end items-end text-2xl text-red-500 cursor-pointer"
-                onClick={handleAddExpense}
-              />
-              <label htmlFor="" className="mt-[10px] font-semibold text-[18px]">
-                Expense Name
-              </label>
-              <input
-                type="text"
-                placeholder="Snacks"
-                className="outline-none border-2 border-[#555] border-solid p-[10px]"
-              />
-              <label htmlFor="" className="mt-[10px] font-semibold text-[18px]">
-                Expense Date
-              </label>
-              <input
-                type="date"
-                placeholder="20/07/2025"
-                className="outline-none border-2 border-[#555] border-solid p-[10px]"
-              />
-              <label htmlFor="" className="mt-[10px] font-semibold text-[18px]">
-                Expense Amount
-              </label>
-              <input
-                type="Number"
-                placeholder="50"
-                className="outline-none border-2 border-[#555] border-solid p-[10px]"
-              />
-              <button className="bg-[#af8978] text-white p-[10px] border-none cursor-pointer my-[10px]">
-                Add Expense
-              </button>
-            </div>
-          )}
+    <div className="flex flex-col items-center mt-10 w-full">
+      <h1 className="text-2xl font-medium text-[#555]">Expense Tracker</h1>
 
-          {showReport && (
-            <div className="absolute z-[999] flex flex-col p-[10px] top-[20px] left-[100px] h-[500px] w-[500px] bg-white shadow-xl">
-              <FaWindowClose
-                className="flex justify-end items-end text-2xl text-red-500 cursor-pointer"
-                onClick={handleShowReport}
-              />
-              <PieChart
-                series={[
-                  {
-                    data: [
-                      { id: 0, value: 10, label: "series A" },
-                      { id: 1, value: 15, label: "series B" },
-                      { id: 2, value: 20, label: "series C" },
-                    ],
-                    innerRadius: 30,
-                    outerRadius: 100,
-                    paddingAngle: 5,
-                    cornerRadius: 5,
-                    startAngle: -45,
-                    endAngle: 225,
-                    cx: 150,
-                    cy: 150,
-                  },
-                ]}
-              />
-            </div>
-          )}
-
-          <div>
-            <input
-              type="text"
-              placeholder="Search"
-              className="p-[10px] w-[150px] border-2 border-[#444] border-solid"
-            />
-          </div>
+      <div className="flex justify-between mt-5 w-[90%]">
+        <div className="flex space-x-4">
+          <button
+            className="bg-[#af8978] p-2 text-white"
+            onClick={handleAddExpense}
+          >
+            Add Expense
+          </button>
+          <button
+            className="bg-blue-400 p-2 text-white"
+            onClick={handleShowReport}
+          >
+            Expense Report
+          </button>
         </div>
 
-        <div className="flex flex-col ">
-          <div className="relative flex justify-between items-center w-[80vw] h-[100px] bg-[#f3edeb] my-[20px] py-[10px]">
-            <h2 className="m-[20px] text-[#555] text-[18px] font-medium">
-              Snacks
-            </h2>
-            <span className="m-[20px] text-[18px]">22/07/2025</span>
-            <span className="m-[20px] text-[18px] font-medium">$10</span>
-            <div className="m-[20px] ">
-              <FaTrash className="text-red-500 mb-[5px] cursor-pointer" />
-              <FaEdit className="text-[#555] mb-[5px] cursor-pointer" onClick={handleShowEdit} />
-            </div>
-          </div>
-
-          <div className="relative flex justify-between items-center w-[80vw] h-[100px] bg-[#f3edeb] my-[20px] py-[10px]">
-            <h2 className="m-[20px] text-[#555] text-[18px] font-medium">
-              Electricity
-            </h2>
-            <span className="m-[20px] text-[18px]">18/07/2025</span>
-            <span className="m-[20px] text-[18px] font-medium">$200</span>
-            <div className="m-[20px] ">
-              <FaTrash className="text-red-500 mb-[5px] cursor-pointer" />
-              <FaEdit className="text-[#555] mb-[5px] cursor-pointer" onClick={handleShowEdit} />
-            </div>
-          </div>
-
-          <div className="relative flex justify-between items-center w-[80vw] h-[100px] bg-[#f3edeb] my-[20px] py-[10px]">
-            <h2 className="m-[20px] text-[#555] text-[18px] font-medium">
-              internet bill
-            </h2>
-            <span className="m-[20px] text-[18px]">20/07/2025</span>
-            <span className="m-[20px] text-[18px] font-medium">$15</span>
-            <div className="m-[20px] ">
-              <FaTrash className="text-red-500 mb-[5px] cursor-pointer" />
-              <FaEdit className="text-[#555] mb-[5px] cursor-pointer" onClick={handleShowEdit} />
-            </div>
-          </div>
-
-          <div className="relative flex justify-between items-center w-[80vw] h-[100px] bg-[#f3edeb] my-[20px] py-[10px]">
-            <h2 className="m-[20px] text-[#555] text-[18px] font-medium">
-              Fuel
-            </h2>
-            <span className="m-[20px] text-[18px]">15/07/2025</span>
-            <span className="m-[20px] text-[18px] font-medium">$200</span>
-            <div className="m-[20px] ">
-              <FaTrash className="text-red-500 mb-[5px] cursor-pointer" />
-              <FaEdit className="text-[#555] mb-[5px] cursor-pointer" onClick={handleShowEdit} />
-            </div>
-          </div>
-
-          <div className="relative flex justify-between items-center w-[80vw] h-[100px] bg-[#f3edeb] my-[20px] py-[10px]">
-            <h2 className="m-[20px] text-[#555] text-[18px] font-medium">
-              Groceries
-            </h2>
-            <span className="m-[20px] text-[18px]">16/07/2025</span>
-            <span className="m-[20px] text-[18px] font-medium">$25</span>
-            <div className="m-[20px] ">
-              <FaTrash className="text-red-500 mb-[5px] cursor-pointer" />
-              <FaEdit className="text-[#555] mb-[5px] cursor-pointer" onClick={handleShowEdit} />
-            </div>
-          </div>
-        </div>
-        {showEdit && (
-          <div className="absolute z-[999] flex flex-col p-[10px] top-[25%] right-0 h-[500px] w-[500px] bg-white shadow-xl">
-            <FaWindowClose
-              className="flex justify-end items-end text-2xl text-red-500 cursor-pointer"
-              onClick={handleShowEdit}
-            />
-            <label htmlFor="" className="mt-[10px] font-semibold text-[18px]">
-              Expense Name
-            </label>
-            <input
-              type="text"
-              placeholder="Snacks"
-              className="outline-none border-2 border-[#555] border-solid p-[10px]"
-            />
-            <label htmlFor="" className="mt-[10px] font-semibold text-[18px]">
-              Expense Date
-            </label>
-            <input
-              type="date"
-              placeholder="20/07/2025"
-              className="outline-none border-2 border-[#555] border-solid p-[10px]"
-            />
-            <label htmlFor="" className="mt-[10px] font-semibold text-[18px]">
-              Expense Amount
-            </label>
-            <input
-              type="Number"
-              placeholder="50"
-              className="outline-none border-2 border-[#555] border-solid p-[10px]"
-            />
-            <button className="bg-[#af8978] text-white p-[10px] border-none cursor-pointer my-[10px]">
-              Update Expense
-            </button>
-          </div>
-        )}
+        <input
+          type="text"
+          placeholder="Search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="p-2 border-2 border-[#444]"
+        />
       </div>
+
+      {/* Add Expense Modal */}
+      {showAddExpense && (
+        <div className="absolute top-[20%] left-[10%] z-50 bg-white p-5 w-[400px] shadow-xl">
+          <FaWindowClose
+            className="text-red-500 text-2xl cursor-pointer float-right"
+            onClick={handleAddExpense}
+          />
+          <h2 className="text-lg font-bold mb-4">Add New Expense</h2>
+          <input
+            type="text"
+            placeholder="Expense Name"
+            className="border p-2 w-full mb-2"
+            onChange={(e) => setLabel(e.target.value)}
+          />
+          <input
+            type="date"
+            className="border p-2 w-full mb-2"
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Amount"
+            className="border p-2 w-full mb-2"
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <button
+            className="bg-[#af8978] text-white p-2 w-full"
+            onClick={handleExpense}
+          >
+            Add
+          </button>
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReport && (
+        <div className="absolute top-[20%] left-[30%] z-50 bg-white p-5 w-[500px] shadow-xl">
+          <FaWindowClose
+            className="text-red-500 text-2xl cursor-pointer float-right"
+            onClick={handleShowReport}
+          />
+          <h2 className="text-lg font-bold mb-4">Expense Report</h2>
+          {expenses.length > 0 ? (
+            <PieChart
+              series={[
+                {
+                  data: expenses.map((e) => ({
+                    label: e.label,
+                    value: e.value,
+                  })),
+                  innerRadius: 30,
+                  outerRadius: 100,
+                },
+              ]}
+              width={400}
+              height={300}
+            />
+          ) : (
+            <p>No data available</p>
+          )}
+        </div>
+      )}
+
+      {/* Expense List */}
+      <div className="mt-10 w-[90%] space-y-4">
+        {expenses
+          .filter((expense) =>
+            expense.label.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+          .map((expense) => (
+            <div
+              key={expense._id}
+              className="flex justify-between items-center border p-4"
+            >
+              <div>
+                <h3 className="font-semibold">{expense.label}</h3>
+                <p className="text-sm text-gray-500">
+                  {new Date(expense.date).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="font-bold">${expense.value}</span>
+                <FaEdit
+                  className="text-blue-500 cursor-pointer"
+                  onClick={() => {
+                    setUpdatedId(expense._id);
+                    setUpdatedLabel(expense.label);
+                    setUpdatedAmount(expense.value);
+                    setUpdatedDate(expense.date.slice(0, 10));
+                    setShowEdit(true);
+                  }}
+                />
+                <FaTrash
+                  className="text-red-500 cursor-pointer"
+                  onClick={() => handleDeleteExpense(expense._id)}
+                />
+              </div>
+            </div>
+          ))}
+      </div>
+
+      {/* Edit Modal */}
+      {showEdit && (
+        <div className="absolute top-[25%] right-0 z-50 bg-white p-5 w-[400px] shadow-xl">
+          <FaWindowClose
+            className="text-red-500 text-2xl cursor-pointer float-right"
+            onClick={() => setShowEdit(false)}
+          />
+          <h2 className="text-lg font-bold mb-4">Edit Expense</h2>
+          <input
+            type="text"
+            value={updatedLabel}
+            onChange={(e) => setUpdatedLabel(e.target.value)}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            type="date"
+            value={updatedDate}
+            onChange={(e) => setUpdatedDate(e.target.value)}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            type="number"
+            value={updatedAmount}
+            onChange={(e) => setUpdatedAmount(e.target.value)}
+            className="border p-2 w-full mb-2"
+          />
+          <button
+            className="bg-[#af8978] text-white p-2 w-full"
+            onClick={handleUpdateExpense}
+          >
+            Update
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,9 +5,10 @@ const Expense = require("../models/Expense");
 //Add a new expense
 router.post("/", async (req, res) => {
   const expense = new Expense({
-    title: req.body.title,
-    amount: req.body.amount,
-    category: req.body.category,
+    label: req.body.label,
+      date: req.body.date,
+     value: req.body.value,
+      
   });
 
   try {
