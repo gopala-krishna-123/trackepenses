@@ -19,7 +19,7 @@ function App() {
   const [updatedAmount, setUpdatedAmount] = useState("0");
   const [updatedDate, setUpdatedDate] = useState("");
 
-  const [searchTerm, setSearchTerm] = useState(""); // 🔍 Search term
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleAddExpense = () => setShowAddExpense(!showAddExpense);
   const handleShowReport = () => setShowReport(!showReport);
@@ -147,20 +147,28 @@ function App() {
           />
           <h2 className="text-lg font-bold mb-4">Expense Report</h2>
           {expenses.length > 0 ? (
-            <PieChart
-              series={[
-                {
-                  data: expenses.map((e) => ({
-                    label: e.label,
-                    value: e.value,
-                  })),
-                  innerRadius: 30,
-                  outerRadius: 100,
-                },
-              ]}
-              width={400}
-              height={300}
-            />
+            <>
+              <PieChart
+                series={[
+                  {
+                    data: expenses.map((e) => ({
+                      label: e.label,
+                      value: Number(e.value),
+                    })),
+                    innerRadius: 30,
+                    outerRadius: 100,
+                  },
+                ]}
+                width={400}
+                height={300}
+              />
+              <p className="mt-4 text-center font-semibold text-gray-700">
+                Total Spent: ₹
+                {expenses
+                  .reduce((total, expense) => total + Number(expense.value), 0)
+                  .toFixed(2)}
+              </p>
+            </>
           ) : (
             <p>No data available</p>
           )}
@@ -185,7 +193,7 @@ function App() {
                 </p>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="font-bold">${expense.value}</span>
+                <span className="font-bold">₹{expense.value}</span>
                 <FaEdit
                   className="text-blue-500 cursor-pointer"
                   onClick={() => {
