@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaEdit, FaWindowClose } from "react-icons/fa";
-import { PieChart } from "@mui/x-charts/PieChart";
 import { publicRequest } from "./requestmethods";
+import { PieChart } from "@mui/x-charts";
 
 function App() {
   const [showAddExpense, setShowAddExpense] = useState(false);
